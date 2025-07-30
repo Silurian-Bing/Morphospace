@@ -1,3 +1,86 @@
+      
+# Code and Data for "Evolutionary innovation underpins resilience to mass extinction"
+
+This repository contains the data and R scripts required to reproduce all analyses and figures presented in the manuscript.
+
+The analytical workflow is structured as a sequence of six R scripts, designed to be run in numerical order.
+
+---
+
+### 1. System Requirements
+
+*   **Software**: R version 4.2 or newer.
+*   **Operating Systems**: The code has been tested on Windows 10/11.
+*   **R Packages**: The following R packages are required. They can be installed by running the command in the "Installation" section below.
+    *   `readxl`
+    *   `dplyr`
+    *   `tidyr`
+    *   `ggplot2`
+    *   `vegan`
+    *   `viridis`
+    *   `mgcv`
+    *   `gridExtra`
+    *   `RColorBrewer`
+    *   `ape`
+    *   `phytools`
+*   **Hardware**: No special hardware is needed. A standard desktop or laptop computer with at least 8 GB of RAM is sufficient.
+
+---
+
+### 2. Installation and Setup
+
+1.  **Download Repository**: Clone or download this repository to your local machine.
+2.  **Set Working Directory**: All scripts use relative paths and **must be run from the root directory of this repository**. Before running any script, open R or RStudio and set the working directory. For example:
+    ```r
+    # On Windows
+    # setwd("C:/path/to/your/downloaded-repo-folder")
+    # On macOS/Linux
+    # setwd("/path/to/your/downloaded-repo-folder")
+    ```
+3.  **Install Packages**: If you do not have the required packages, run the following command in the R console:
+    ```r
+    install.packages(c("readxl", "dplyr", "tidyr", "ggplot2", "vegan", "viridis", "mgcv", "gridExtra", "RColorBrewer", "ape", "phytools"))
+    ```
+
+*   **Estimated Setup Time**: 5-10 minutes.
+
+---
+
+### 3. How to Reproduce the Analysis
+
+To reproduce all results from the manuscript, run the scripts sequentially from `01` to `06`. Each script loads the necessary data and saves its outputs (figures, processed data) before the next script is run.
+
+*   `01_PCA_and_Morphospace_Visualization.R`: Performs the primary Principal Component Analysis (PCA) and generates basic morphospace visualizations, including centroid trajectories.
+*   `02_Diversity_Disparity_Comparison.R`: Calculates taxonomic richness (from `OtoD_atrypidesB516.xlsx`) and morphological disparity, and compares their trends over geological time.
+*   `03_Disparity_Through_Time_Analysis.R`: Conducts the Disparity Through Time (DTT) analysis using geological time bins derived from the first and last appearance data.
+*   `04_Environmental_Covariation_Analysis.R`: Integrates paleoenvironmental proxies (temperature and sea level) and performs cross-correlation analyses with the biological trends.
+*   `05_Phylogenetic_Clustering_and_Signal.R`: Integrates the phylogenetic tree (`T29h tree.nex`), performs morphospace clustering, and quantifies phylogenetic signal (Blomberg's K).
+*   `06_Phylomorphospace_Integration.R`: Generates the final integrated phylomorphospace visualizations, combining phylogeny, morphology, and temporal data.
+
+*   **Expected Total Run Time**: Approximately 30-45 minutes on a standard desktop computer.
+*   **Expected Output**: The scripts will generate all figures and statistical results reported in the manuscript. Figures will be saved in a `_outputs/figures/` sub-directory, and processed data tables will be saved in `_outputs/data/`.
+
+---
+
+### 4. Data Description
+
+All necessary data files are located in the `_data/` directory:
+
+*   `morphospace.xlsx`: The primary multi-sheet morphological character matrix for all genera.
+*   `taxon_age_data.csv`: First and Last Appearance Datum (FAD/LAD) for each genus used for temporal binning.
+*   `OtoD_atrypidesB516.xlsx`: The comprehensive occurrence dataset used for calculating taxonomic diversity.
+*   `tem470_370.csv`: Paleo-temperature proxy data.
+*   `sea470_370.csv`: Eustatic sea-level proxy data.
+*   `T29h tree.nex`: The phylogenetic tree of the Atrypida in NEXUS format.
+
+---
+
+### 5. Citation
+
+
+
+
+
 # Morphospace Evolution Analysis Pipeline
 
 A comprehensive R-based analytical pipeline for quantifying morphological evolution patterns through geological time, integrating multiple approaches from basic morphospace visualization to phylogenetically-informed analyses and environmental correlations.
