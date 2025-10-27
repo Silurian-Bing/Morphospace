@@ -50,7 +50,7 @@ The analytical workflow is structured as a sequence of six R scripts, designed t
 
 To reproduce all results from the manuscript, run the scripts sequentially from `01` to `06`. Each script loads the necessary data and saves its outputs (figures, processed data) before the next script is run.
 
-*   `01_PCA_and_Morphospace_Visualization.R`: Performs the primary Principal Component Analysis (PCA) and generates basic morphospace visualizations, including centroid trajectories.
+*   `01_PCoA_and_Morphospace_Visualization.R`: Performs the primary Principal Coordinates Analysis (PCoA) and generates basic morphospace visualizations, including centroid trajectories.
 *   `02_Diversity_Disparity_Comparison.R`: Calculates taxonomic richness (from `OtoD_atrypidesB516.xlsx`) and morphological disparity, and compares their trends over geological time.
 *   `03_Disparity_Through_Time_Analysis.R`: Conducts the Disparity Through Time (DTT) analysis using geological time bins derived from the first and last appearance data.
 *   `04_Environmental_Covariation_Analysis.R`: Integrates paleoenvironmental proxies (temperature and sea level) and performs cross-correlation analyses with the biological trends.
@@ -90,11 +90,11 @@ This collection of six R scripts provides a complete workflow for morphospace ev
 Script Execution Order
 ## 1. morphospace_evolution_analysis.R
 Foundation: Basic Morphospace Visualization
-The entry point for morphospace analysis, performing Principal Component Analysis (PCA) of morphological datasets across geological time periods.
+The entry point for morphospace analysis, performing Principal Coordinates Analysis (PCoA) of morphological datasets across geological time periods.
 Core Functions:
 •	Strict Excel data validation and processing (A:AV column enforcement)
 •	Multi-period morphological data integration with metadata preservation
-•	Standardized PCA implementation with comprehensive error handling
+•	Standardized PCoA implementation with comprehensive error handling
 •	Advanced visualization including point clouds, confidence ellipses, and temporal trajectories
 Key Outputs:
 •	Basic morphospace plots with time-period color coding
