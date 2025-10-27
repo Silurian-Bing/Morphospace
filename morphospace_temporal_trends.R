@@ -59,45 +59,47 @@ final_age_data <- age_data[age_data$taxon %in% final_taxa, ]
 final_age_data <- final_age_data[match(final_taxa, final_age_data$taxon), ]
 final_age_data$avg_age <- (final_age_data$FAD + final_age_data$LAD) / 2
 
-pca_result <- prcomp(final_morpho_clean, scale. = TRUE, center = TRUE)
-variance_explained <- summary(pca_result)$importance[2, ] * 100
-n_pcs <- min(6, ncol(pca_result$x)); pc_scores <- pca_result$x[, 1:n_pcs]
+# PCO (Principal Coordinates Analysis)
+dist_matrix <- dist(scale(final_morpho_clean, center = TRUE, scale = TRUE))
+pco_result <- cmdscale(dist_matrix, k = min(nrow(final_morpho_clean) - 1, ncol(final_morpho_clean)), eig = TRUE)
+variance_explained <- (pco_result$eig / sum(pco_result$eig)) * 100
+n_pcos <- min(6, ncol(pco_result$points)); pco_scores <- pco_result$points[, 1:n_pcos]
 
 morpho_data <- data.frame(
-  taxon = rownames(pc_scores), PC1 = pc_scores[, 1],
-  PC2 = if(n_pcs > 1) pc_scores[, 2] else 0, PC3 = if(n_pcs > 2) pc_scores[, 3] else 0,
-  PC4 = if(n_pcs > 3) pc_scores[, 4] else 0, PC5 = if(n_pcs > 4) pc_scores[, 5] else 0,
-  PC6 = if(n_pcs > 5) pc_scores[, 6] else 0, avg_age = final_age_data$avg_age,
+  taxon = rownames(pco_scores), PCO1 = pco_scores[, 1],
+  PCO2 = if(n_pcos > 1) pco_scores[, 2] else 0, PCO3 = if(n_pcos > 2) pco_scores[, 3] else 0,
+  PCO4 = if(n_pcos > 3) pco_scores[, 4] else 0, PCO5 = if(n_pcos > 4) pco_scores[, 5] else 0,
+  PCO6 = if(n_pcos > 5) pco_scores[, 6] else 0, avg_age = final_age_data$avg_age,
   FAD = final_age_data$FAD, LAD = final_age_data$LAD,
   age_range = final_age_data$LAD - final_age_data$FAD, stringsAsFactors = FALSE
 )
 
-morpho_data$morpho_space_volume_2d <- abs(morpho_data$PC1 * morpho_data$PC2)
-morpho_data$morpho_space_volume_3d <- abs(morpho_data$PC1 * morpho_data$PC2 * morpho_data$PC3)
-pca_center <- apply(morpho_data[, c("PC1", "PC2", "PC3")], 2, mean)
-morpho_data$distance_to_center <- sqrt(rowSums((morpho_data[, c("PC1", "PC2", "PC3")] - 
-                                                  matrix(pca_center, nrow = nrow(morpho_data), ncol = 3, byrow = TRUE))^2))
-morpho_data$morpho_disparity <- sqrt(rowSums(morpho_data[, paste0("PC", 1:min(4, n_pcs))]^2))
+morpho_data$morpho_space_volume_2d <- abs(morpho_data$PCO1 * morpho_data$PCO2)
+morpho_data$morpho_space_volume_3d <- abs(morpho_data$PCO1 * morpho_data$PCO2 * morpho_data$PCO3)
+pco_center <- apply(morpho_data[, c("PCO1", "PCO2", "PCO3")], 2, mean)
+morpho_data$distance_to_center <- sqrt(rowSums((morpho_data[, c("PCO1", "PCO2", "PCO3")] - 
+                                                  matrix(pco_center, nrow = nrow(morpho_data), ncol = 3, byrow = TRUE))^2))
+morpho_data$morpho_disparity <- sqrt(rowSums(morpho_data[, paste0("PCO", 1:min(4, n_pcos))]^2))
 
 morpho_data <- morpho_data[order(morpho_data$avg_age, decreasing = TRUE), ]
-morpho_data$pc1_rate <- c(NA, diff(morpho_data$PC1) / diff(morpho_data$avg_age))
-morpho_data$pc2_rate <- c(NA, diff(morpho_data$PC2) / diff(morpho_data$avg_age))
-morpho_data$overall_rate <- sqrt(morpho_data$pc1_rate^2 + morpho_data$pc2_rate^2)
+morpho_data$pco1_rate <- c(NA, diff(morpho_data$PCO1) / diff(morpho_data$avg_age))
+morpho_data$pco2_rate <- c(NA, diff(morpho_data$PCO2) / diff(morpho_data$avg_age))
+morpho_data$overall_rate <- sqrt(morpho_data$pco1_rate^2 + morpho_data$pco2_rate^2)
 
-pc_weights <- variance_explained[1:min(4, n_pcs)] / sum(variance_explained[1:min(4, n_pcs)])
+pco_weights <- variance_explained[1:min(4, n_pcos)] / sum(variance_explained[1:min(4, n_pcos)])
 morpho_data$weighted_complexity <- 0
-for (i in 1:length(pc_weights)) {
+for (i in 1:length(pco_weights)) {
   morpho_data$weighted_complexity <- morpho_data$weighted_complexity + 
-    abs(morpho_data[[paste0("PC", i)]]) * pc_weights[i]
+    abs(morpho_data[[paste0("PCO", i)]]) * pco_weights[i]
 }
-morpho_data$specialization <- apply(abs(morpho_data[, paste0("PC", 1:min(3, n_pcs))]), 1, max)
+morpho_data$specialization <- apply(abs(morpho_data[, paste0("PCO", 1:min(3, n_pcos))]), 1, max)
 
 time_windows <- seq(from = ceiling(max(morpho_data$avg_age)), to = floor(min(morpho_data$avg_age)), by = -10)
 morpho_data$time_window <- cut(morpho_data$avg_age, breaks = rev(time_windows), 
                                labels = paste0(time_windows[-length(time_windows)], "-", time_windows[-1], "Ma"),
                                include.lowest = TRUE)
 
-trend_vars <- c("PC1", "PC2", "PC3", "morpho_disparity", "distance_to_center", "weighted_complexity", "specialization")
+trend_vars <- c("PCO1", "PCO2", "PCO3", "morpho_disparity", "distance_to_center", "weighted_complexity", "specialization")
 trend_results <- data.frame(variable = trend_vars, linear_r = NA, linear_p = NA, kendall_tau = NA, 
                             kendall_p = NA, direction = NA, strength = NA, stringsAsFactors = FALSE)
 
@@ -127,7 +129,7 @@ for (i in 1:length(trend_vars)) {
 }
 
 changepoint_results <- list()
-for (var_name in c("PC1", "PC2", "morpho_disparity")) {
+for (var_name in c("PCO1", "PCO2", "morpho_disparity")) {
   var_data <- morpho_data[[var_name]]
   tryCatch({
     cpt_mean <- cpt.mean(var_data, method = "PELT"); changepoints <- cpts(cpt_mean)
@@ -138,12 +140,12 @@ for (var_name in c("PC1", "PC2", "morpho_disparity")) {
 }
 
 window_stats <- morpho_data %>% filter(!is.na(time_window)) %>% group_by(time_window) %>%
-  summarise(n_taxa = n(), avg_age_mean = mean(avg_age), pc1_mean = mean(PC1), pc1_sd = sd(PC1),
-            pc2_mean = mean(PC2), pc2_sd = sd(PC2), morpho_disparity_mean = mean(morpho_disparity),
+  summarise(n_taxa = n(), avg_age_mean = mean(avg_age), pco1_mean = mean(PCO1), pco1_sd = sd(PCO1),
+            pco2_mean = mean(PCO2), pco2_sd = sd(PCO2), morpho_disparity_mean = mean(morpho_disparity),
             morpho_disparity_sd = sd(morpho_disparity), space_volume_mean = mean(morpho_space_volume_2d),
             specialization_mean = mean(specialization), .groups = 'drop') %>% arrange(desc(avg_age_mean))
 
-window_stats$pc1_change_rate <- c(NA, diff(window_stats$pc1_mean) / diff(window_stats$avg_age_mean))
+window_stats$pco1_change_rate <- c(NA, diff(window_stats$pco1_mean) / diff(window_stats$avg_age_mean))
 window_stats$disparity_change_rate <- c(NA, diff(window_stats$morpho_disparity_mean) / diff(window_stats$avg_age_mean))
 
 theme_evolution <- theme_minimal() +
@@ -164,14 +166,14 @@ p1 <- ggplot(morpho_data, aes(x = avg_age, y = morpho_disparity)) +
                         ", Linear R² =", round(gam_summary$linear_r2[gam_summary$variable == "morpho_disparity"], 3)),
        x = "Time (Ma)", y = "Morphological Disparity") + scale_x_reverse() + theme_evolution
 
-p2 <- ggplot(morpho_data, aes(x = avg_age, y = PC1)) +
+p2 <- ggplot(morpho_data, aes(x = avg_age, y = PCO1)) +
   geom_point(aes(color = specialization), size = 2.5, alpha = 0.7) +
   geom_smooth(method = "gam", formula = y ~ s(x, k = 5), se = TRUE, color = "red", linewidth = 1.2) +
   geom_smooth(method = "lm", se = FALSE, color = "blue", linetype = "dashed") +
   scale_color_viridis_c(name = "Specialization\nDegree") +
-  labs(title = paste("PC1 Temporal Evolution (", round(variance_explained[1], 1), "% variance)"),
+  labs(title = paste("PCO1 Temporal Evolution (", round(variance_explained[1], 1), "% variance)"),
        subtitle = paste("Kendall τ =", round(trend_results$kendall_tau[1], 3), ", p =", round(trend_results$kendall_p[1], 3)),
-       x = "Time (Ma)", y = "PC1") + scale_x_reverse() + theme_evolution
+       x = "Time (Ma)", y = "PCO1") + scale_x_reverse() + theme_evolution
 
 morpho_data$evolution_pattern <- "Stable"
 for (i in 1:nrow(morpho_data)) {
